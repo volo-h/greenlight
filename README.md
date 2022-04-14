@@ -74,5 +74,50 @@ https://betterprogramming.pub/string-case-styles-camel-pascal-snake-and-kebab-ca
 https://go.dev/doc/effective_go#methods
 https://medium.com/globant/go-method-receiver-pointer-vs-value-ffc5ab7acdb
 
-There are two approaches that you can take to decode JSON into a native Go object: using a json.Decoder type or using the json.Unmarshal() function.
+There are two approaches that you can take to decode JSON into a native Go object: 
+using a json.Decoder type 
+or
+using the json.Unmarshal() function.
+
+# run project
+go run ./cmd/api
+
+BODY='{"title":"Moana","year":2016,"runtime":107, "genres":["animation","adventure"]}'
+curl -i -d "$BODY" localhost:4000/v1/movies
+
+https://pkg.go.dev/encoding/json#Decoder.DisallowUnknownFields
+
+When Go is decoding some JSON, it will check to see if the destination type satisfies the json.Unmarshaler interface.
+If it does satisfy the interface, then Go will call it’s UnmarshalJSON() method to determine how to decode the provided JSON into the target type.
+
+# Postgresql
+  https://www.enterprisedb.com/postgres-tutorials/how-tune-postgresql-memory
+  https://pgtune.leopard.in.ua/
+
+
+go get github.com/lib/pq@v1.10.0
+
+
+File: $HOME/.profile
+
+export GREENLIGHT_DB_DSN='postgres://greenlight:pa55word@localhost/greenlight'
+
+$ source $HOME/.profile
+$ echo $GREENLIGHT_DB_DSN
+
+$ psql $GREENLIGHT_DB_DSN
+
+By default PostgreSQL has a hard limit of 100 open connections and, if this hard limit is hit under heavy load, it will cause our pq driver to return a "sorry, too many clients already" error.
+	The hard limit on open connections can be changed in your postgresql.conf file using the max_connections setting.
+
+SetMaxOpenConns()
+SetMaxIdleConns()	#	By default, the maximum number of idle connections is 2.
+
+by default MySQL will automatically close any connections which haven’t been used for 8 hours.
+
+the MaxIdleConns limit should always be less than or equal to MaxOpenConns
+
+SetConnMaxLifetime() method sets the ConnMaxLifetime limit — the maximum length of time that a connection can be reused for
+
+
 
