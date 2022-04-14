@@ -147,3 +147,18 @@ $ migrate -path=./migrations -database=$EXAMPLE_DSN down
 # Decoupling database migrations from server startup: why and how
   https://pythonspeed.com/articles/schema-migrations-server-startup/ 
 
+If you don’t like the term model then you might want to think of this as your data access or storage layer instead.
+
+https://github.com/avelino/awesome-go#orm
+https://github.com/avelino/awesome-go#database
+
+https://pkg.go.dev/database/sql#DB.Exec
+https://pkg.go.dev/database/sql#DB.QueryRow
+
+Behind the scenes, the pq.Array() adapter takes our []string slice and converts it to a pq.StringArray type.
+
+BODY='{"title":"Black Panther","year":2018,"runtime":"134 mins","genres":["action","adventure"]}'
+curl -d "$BODY" localhost:4000/v1/movies
+
+https://www.postgresql.org/docs/current/xfunc-sql.html
+
