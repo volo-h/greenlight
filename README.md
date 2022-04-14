@@ -100,7 +100,7 @@ go get github.com/lib/pq@v1.10.0
 
 File: $HOME/.profile
 
-export GREENLIGHT_DB_DSN='postgres://greenlight:pa55word@localhost/greenlight'
+export GREENLIGHT_DB_DSN='postgres://postgres:@localhost/greenlight?sslmode=disable'
 
 $ source $HOME/.profile
 $ echo $GREENLIGHT_DB_DSN
@@ -120,4 +120,30 @@ the MaxIdleConns limit should always be less than or equal to MaxOpenConns
 SetConnMaxLifetime() method sets the ConnMaxLifetime limit — the maximum length of time that a connection can be reused for
 
 
+https://github.com/golang-migrate/migrate
+https://github.com/golang-migrate/migrate/tree/master/cmd/migrate
+
+brew install golang-migrate
+$ migrate -version
+
+✗ migrate create -seq -ext=.sql -dir=./migrations create_movies_table
+✗ migrate create -seq -ext=.sql -dir=./migrations add_movies_check_constraints
+
+✗ migrate -path=./migrations -database=$GREENLIGHT_DB_DSN up
+
+SELECT * FROM schema_migrations;
+
+# show structure of table in pg 
+greenlight-> \d movies
+
+$ migrate -path=./migrations -database=$EXAMPLE_DSN version
+$ migrate -path=./migrations -database=$EXAMPLE_DSN goto 1
+$ migrate -path=./migrations -database =$EXAMPLE_DSN down 1
+$ migrate -path=./migrations -database=$EXAMPLE_DSN down
+
+# to force the database version number to 1
+  $ migrate -path=./migrations -database=$EXAMPLE_DSN force 1
+
+# Decoupling database migrations from server startup: why and how
+  https://pythonspeed.com/articles/schema-migrations-server-startup/ 
 
