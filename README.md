@@ -216,4 +216,9 @@ In fact, we can demonstrate this in our application by setting the maximum open 
 
 $ go run ./cmd/api -db-max-open-conns=1
 
+# quering / pagination
+We can retrieve the query string data from a request by calling the r.URL.Query() method. This returns a url.Values type, which is basically a map holding the query string data.
+We can then extract values from this map using the Get() method, which will return the value for a specific key as a string type, or the empty string "" if no matching key exists in the query string.
 
+
+curl "localhost:4000/v1/movies?title=godfather&genres=crime,drama&page=1&page_size=5&sort=year"
