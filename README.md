@@ -222,3 +222,8 @@ We can then extract values from this map using the Get() method, which will retu
 
 
 curl "localhost:4000/v1/movies?title=godfather&genres=crime,drama&page=1&page_size=5&sort=year"
+
+https://pkg.go.dev/database/sql#DB.QueryContext
+
+curl localhost:4000/v1/movies
+
