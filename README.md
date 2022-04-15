@@ -166,3 +166,54 @@ https://www.postgresql.org/docs/current/xfunc-sql.html
 BODY='{"title":"Black Panther","year":2018,"runtime":"134 mins","genres":["sci-fi","action","adventure"]}'
 curl -X PUT -d "$BODY" localhost:4000/v1/movies/2
 
+
+# for DELETE use https://pkg.go.dev/database/sql#DB.Exec
+One of the nice things about Exec() is that it returns a sql.Result object, which contains information about the number of rows that the query affected. In our scenario here, this is really useful information.
+
+
+pointers have the zero-value nil
+
+slices already have the zero-value nil
+
+curl -X PATCH -d '{"year": 1985}' localhost:4000/v1/movies/4
+curl -X PATCH -d '{"year": 1985, "title": ""}' localhost:4000/v1/movies/2
+
+
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/PATCH
+
+# About race condition
+  https://stackoverflow.com/questions/34510/what-is-a-race-condition
+
+http.Server handles each HTTP request in its own goroutine, so when this happens the code in our  updateMovieHandler will be running concurrently in two different goroutines.
+
+
+# data race
+This specific type of race condition is known as a data race. Data races can occur when two or more goroutines try to use a piece of shared data (in this example the movie record) at the same time, but the result of their operations is dependent on the exact order that the scheduler executes their instructions.
+
+# optimistic locking
+  https://stackoverflow.com/questions/129329/optimistic-vs-pessimistic-locking/129397#129397
+
+This means that the first update request that reaches our database will succeed, and whoever is making the second update will receive an error message instead of having their change applied.
+
+
+curl -i -X PATCH -d '{"runtime": "97 mins"}' "localhost:4000/v1/movies/2" & curl -i -X PATCH -d '{"genres": ["comedy","drama"]}' "localhost:4000/v1/movies/2"
+
+UPDATE movies SET title = $1, year = $2, runtime = $3, genres = $4, version = uuid_generate_v4() WHERE id = $5 AND version = $6 RETURNING version
+
+
+https://blog.josephscott.org/2011/10/14/timing-details-with-curl/
+
+https://pkg.go.dev/context#Background
+
+
+After 3 seconds, the context timeout is reached and our pq database driver sends a cancellation signal to PostgreSQL† .
+PostgreSQL then terminates the running query, the corresponding resources are freed-up, and it returns the error message that we see above.
+The client is then sent a 500 Internal Server Error response, and the error is logged so that we know something has gone wrong.
+
+More precisely, our context (the one with the 3-second timeout) has a Done channel, and when the timeout is reached the Done channel will be closed. While the SQL query is running, our database driver pq is also running a background goroutine which listens on this Done channel. If the channel gets closed, then pq sends a cancellation signal to PostgreSQL. PostgreSQL terminates the query, and then sends the error message that we see above as a response to the original pq goroutine. That error message is then returned to our database model’s Get() method.
+
+In fact, we can demonstrate this in our application by setting the maximum open connections to 1 and making two concurrent requests to our endpoint.
+
+$ go run ./cmd/api -db-max-open-conns=1
+
+
