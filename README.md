@@ -293,3 +293,14 @@ curl "localhost:4000/v1/movies?page_size=1"
   https://www.postgresql.org/docs/current/tutorial-window.html
 
 curl "localhost:4000/v1/movies?page=1&page_size=2"
+
+# mutexes
+  https://www.alexedwards.net/blog/understanding-mutexes
+
+# standard logger
+  https://pkg.go.dev/log#pkg-overview
+
+# another loggers
+  https://github.com/avelino/awesome-go#logging
+  https://github.com/rs/zerolog
+
