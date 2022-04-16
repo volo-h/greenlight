@@ -279,3 +279,17 @@ The actual order in that case will depend on the scan and join plan types and th
 # sort by year
   ✗ curl "localhost:4000/v1/movies?sort=-year"
 
+# pagination
+The LIMIT clause allows you to set the maximum number of records that a SQL query should return, 
+and
+OFFSET allows you to ‘skip’ a specific number of rows before starting to return records from the query.
+
+LIMIT = page_size
+OFFSET = (page - 1) * page_size
+
+curl "localhost:4000/v1/movies?page_size=1"
+
+# window function - counts the total number of filtered rows
+  https://www.postgresql.org/docs/current/tutorial-window.html
+
+curl "localhost:4000/v1/movies?page=1&page_size=2"
