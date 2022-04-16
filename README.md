@@ -227,3 +227,55 @@ https://pkg.go.dev/database/sql#DB.QueryContext
 
 curl localhost:4000/v1/movies
 
+# reductive filter
+https://ux.stackexchange.com/questions/88993/inclusive-additive-vs-exclusive-reductive-filtering-how-to-differentiate
+
+
+SELECT id, created_at, title, year, runtime, genres, version FROM movies
+  WHERE (LOWER(title) = LOWER($1) OR $1 = '')
+  AND (genres @> $2 OR $2 = '{}') ORDER BY id
+
+The @> symbol is the ‘contains’ operator for PostgreSQL arrays, and this condition will return true if all values in the placeholder parameter $2 are contained in the database genres field or the placeholder parameter contains an empty array.
+
+
+# postgresql functions
+  https://www.postgresql.org/docs/9.6/functions-array.html
+
+PostgreSQL also provides a range of other useful array operators and functions, including the && ‘overlap’ operator, the <@ ‘contained by’ operator, and the array_length() function.
+
+
+curl "localhost:4000/v1/movies?genres=adventure"
+curl "localhost:4000/v1/movies?title=moana&genres=animation,adventure"
+curl "localhost:4000/v1/movies?title=moana&genres=aaction,adventure"
+curl "localhost:4000/v1/movies?title=moana&genres=action,adventure"
+curl "localhost:4000/v1/movies?genres=action,adventure"
+
+# about indexes
+  https://www.postgresql.org/docs/13/indexes-intro.html
+  https://www.postgresql.org/docs/13/indexes-types.html
+
+# generate indexes and apply its 
+  $ migrate create -seq -ext .sql -dir ./migrations add_movies_indexes
+  $ migrate -path ./migrations -database $GREENLIGHT_DB_DSN up
+
+retrieve a list of all available configurations by running the \dF
+
+if you wanted to use the english configuration to search our movies, you could update the SQL query like so:
+  SELECT id, created_at, title, year, runtime, genres, version FROM movies WHERE (to_tsvector('english', title) @@ plainto_tsquery('english', $1) OR $1 = '') AND (genres @> $2 OR $2 = '{}') ORDER BY id
+
+https://www.compose.com/articles/indexing-for-full-text-search-in-postgresql/
+https://www.postgresql.org/docs/current/textsearch.html
+
+The PostgreSQL STRPOS() function allows you to check for the existence of a substring in a particular database field.
+https://www.postgresql.org/docs/current/functions-string.html
+
+https://niallburkley.com/blog/index-columns-for-like-in-postgres/
+
+# order by
+  https://www.postgresql.org/docs/current/queries-order.html
+
+The actual order in that case will depend on the scan and join plan types and the order on disk, but it must not be relied on.
+
+# sort by year
+  ✗ curl "localhost:4000/v1/movies?sort=-year"
+
