@@ -304,3 +304,11 @@ curl "localhost:4000/v1/movies?page=1&page_size=2"
   https://github.com/avelino/awesome-go#logging
   https://github.com/rs/zerolog
 
+
+for i in {1..6}; do curl http://localhost:4000/v1/healthcheck; done
+
+using HAProxy 
+or
+Nginx as a load balancer 
+or reverse proxy
+
