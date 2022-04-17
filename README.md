@@ -316,3 +316,33 @@ or reverse proxy
 go run ./cmd/api/ -limiter-burst=2
 go run ./cmd/api/ -limiter-enabled=false
 
+# graceful shutdown
+https://pkg.go.dev/net/http#Server.Shutdown
+
+Ctrl+C == interrupt signal == SIGINT signal
+
+SIGINT          Ctrl+C
+SIGQUIT         Ctrl+\
+SIGKILL
+SIGTERM
+
+
+Catachable signals can be intercepted by our application and either ignored, or used to trigger a certain action (such as a graceful shutdown):
+  SIGINT
+  SIGQUIT
+
+pgrep command to verify that this process exists
+  pgrep -l api
+
+# try sending a SIGKILL / SIGTERM signal to the api process
+  pkill -SIGKILL api
+  pkill -SIGTERM api
+
+tools in the os/signals package that we can use to intercept catchable signals and trigger a graceful shutdown of our application.
+
+https://gobyexample.com/channel-buffering
+
+# sources!
+  https://github.com/golang/go/blob/bc7e4d9257693413d57ad467814ab71f1585a155/src/os/signal/signal.go#L243
+
+curl localhost:4000/v1/healthcheck & pkill -SIGTERM api
