@@ -312,3 +312,7 @@ or
 Nginx as a load balancer 
 or reverse proxy
 
+
+go run ./cmd/api/ -limiter-burst=2
+go run ./cmd/api/ -limiter-enabled=false
+
