@@ -346,3 +346,19 @@ https://gobyexample.com/channel-buffering
   https://github.com/golang/go/blob/bc7e4d9257693413d57ad467814ab71f1585a155/src/os/signal/signal.go#L243
 
 curl localhost:4000/v1/healthcheck & pkill -SIGTERM api
+
+migrate create -seq -ext=.sql -dir=./migrations create_users_table
+
+# register new user
+  BODY='{"name": "Alice Smith", "email": "alice@example.com", "password": "pa55word"}'
+  curl -i -d "$BODY" localhost:4000/v1/users
+
+
+  BODY='{"name": "", "email": "bob@invalid.", "password": "pass"}'
+  curl -d "$BODY" localhost:4000/v1/users
+
+case-insensitive
+  alice@example.com
+  ==
+  alice@EXAMPLE.COM
+

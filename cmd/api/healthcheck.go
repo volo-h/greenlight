@@ -2,7 +2,7 @@ package main
 
 import (
 	"net/http"
-	"time" // New import
+	// "time" // New import
 )
 
 func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
