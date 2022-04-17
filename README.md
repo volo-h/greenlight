@@ -357,8 +357,24 @@ migrate create -seq -ext=.sql -dir=./migrations create_users_table
   BODY='{"name": "", "email": "bob@invalid.", "password": "pass"}'
   curl -d "$BODY" localhost:4000/v1/users
 
+https://pkg.go.dev/golang.org/x/crypto/bcrypt#GenerateFromPassword
+https://pkg.go.dev/golang.org/x/crypto/bcrypt#CompareHashAndPassword
+
 case-insensitive
   alice@example.com
   ==
   alice@EXAMPLE.COM
+
+SMTP service provider
+  Postmark
+  Sendgrid
+  https://mailtrap.io/
+  https://mailtrap.io/register/signup
+
+
+embedded file systems
+
+
+BODY='{"name": "Bob Jones", "email": "bob@example.com", "password": "pa55word"}'
+curl -w '\nTime: %{time_total}\n' -d "$BODY" localhost:4000/v1/users
 
