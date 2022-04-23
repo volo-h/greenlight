@@ -392,7 +392,7 @@ Basically, there are no application state side-effects from the client sending t
 curl -X PUT -d '{"token": "invalid"}' localhost:4000/v1/users/activated
 curl -X PUT -d '{"token": "ABCDEFGHIJKLMNOPQRSTUVWXYZ"}' localhost:4000/v1/users/activated
 
-curl -X PUT -d '{"token": "P4B3URJZJ2NW5UPZC2OHN4H2NM"}' localhost:4000/v1/users/activated
+curl -X PUT -d '{"token": "GAHSM6PPCROP4VSSEBCGEU2XEU"}' localhost:4000/v1/users/activated
 
 #
   https://portswigger.net/web-security/host-header

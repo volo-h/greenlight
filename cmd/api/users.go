@@ -4,7 +4,9 @@ import (
 	"errors"
 	"net/http"
 	"time" // New import
-	"fmt"
+
+	"os"
+	"greenlight.alexedwards.net/internal/jsonlog"
 
 	"greenlight.alexedwards.net/internal/data"
 	"greenlight.alexedwards.net/internal/validator"
@@ -76,6 +78,10 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		app.serverErrorResponse(w, r, err)
 		return
 	}
+
+	// app.logger.PrintError(fmt.Errorf("%s", token), nil)
+	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
+	logger.PrintInfo(token.Plaintext, nil)
 
 	app.background(func() {
 		// As there are now multiple pieces of data that we want to pass to our email 
