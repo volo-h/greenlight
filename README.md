@@ -378,3 +378,27 @@ embedded file systems
 BODY='{"name": "Bob Jones", "email": "bob@example.com", "password": "pa55word"}'
 curl -w '\nTime: %{time_total}\n' -d "$BODY" localhost:4000/v1/users
 
+
+BODY='{"name": "Faith Smith", "email": "faith@example.com", "password": "pa55word"}'
+curl -d "$BODY" localhost:4000/v1/users
+
+# verificatrions process
+  https://ux.stackexchange.com/questions/111005/what-is-the-point-of-email-verification/111023#111023
+
+# ???
+If a client sends the same PUT /v1/users/activated request multiple times, the first will succeed (assuming the token is valid) and then any subsequent requests will result in an error being sent to the client (because the token has been used and deleted from the database). But the important thing is that nothing in our application state (i.e. database) changes after that first request.
+Basically, there are no application state side-effects from the client sending the same request multiple times, which means that the endpoint is idempotent and using PUT is more appropriate than POST .
+
+curl -X PUT -d '{"token": "invalid"}' localhost:4000/v1/users/activated
+curl -X PUT -d '{"token": "ABCDEFGHIJKLMNOPQRSTUVWXYZ"}' localhost:4000/v1/users/activated
+
+curl -X PUT -d '{"token": "P4B3URJZJ2NW5UPZC2OHN4H2NM"}' localhost:4000/v1/users/activated
+
+#
+  https://portswigger.net/web-security/host-header
+
+# sql joins
+  https://www.dataquest.io/blog/sql-joins-tutorial/
+
+#
+  https://shahjerry33.medium.com/password-reset-token-leak-via-referrer-2e622500c2c1

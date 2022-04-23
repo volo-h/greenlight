@@ -5,7 +5,9 @@ import (
   "database/sql" // New import
 	"flag"
 	"os"
+  "sync"
 	"time"
+
   "greenlight.alexedwards.net/internal/data" // New import
   "greenlight.alexedwards.net/internal/jsonlog" // New import
   "greenlight.alexedwards.net/internal/mailer" // New import
@@ -65,6 +67,7 @@ type application struct {
   logger *jsonlog.Logger
   models data.Models
   mailer mailer.Mailer
+  wg     sync.WaitGroup
 }
 
 func main() {
