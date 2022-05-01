@@ -15,12 +15,22 @@ import (
 // but we'll add additional scopes later in the book.
 const ( 
 	ScopeActivation = "activation"
+	ScopeAuthentication = "authentication" // Include a new authentication scope.
 )
 
 // Check that the plaintext token has been provided and is exactly 52 bytes long. 
 func ValidateTokenPlaintext(v *validator.Validator, tokenPlaintext string) {
 	v.Check(tokenPlaintext != "", "token", "must be provided")
 	v.Check(len(tokenPlaintext) == 26, "token", "must be 26 bytes long") 
+}
+
+// Add struct tags to control how the struct appears when encoded to JSON. 
+type Token struct { 
+	Plaintext string `json:"token"` 
+	Hash []byte `json:"-"` 
+	UserID int64 `json:"-"`
+	Expiry time.Time `json:"expiry"` 
+	Scope string `json:"-"`
 }
 
 // Define the TokenModel type. 
@@ -30,15 +40,14 @@ type TokenModel struct {
 
 // The New() method is a shortcut which creates a new Token struct and then inserts the 
 // data in the tokens table.
-func (m TokenModel) New(userID int64, ttl time.Duration, scope string) (*Token, error) { 
-	token, err := generateToken(userID, ttl, scope) 
-	if err != nil { 
+func (m TokenModel) New(userID int64, ttl time.Duration, scope string) (*Token, error) {
+	token, err := generateToken(userID, ttl, scope)
+	if err != nil {
 		return nil, err
 	}
 
-	err = m.Insert(token) 
+	err = m.Insert(token)
 	return token, err
-
 }
 
 // Insert() adds the data for a specific token to the tokens table. 
@@ -65,17 +74,6 @@ func (m TokenModel) DeleteAllForUser(scope string, userID int64) error {
 
 	_, err := m.DB.ExecContext(ctx, query, scope, userID)
 	return err
-}
-
-// Define a Token struct to hold the data for an individual token. This includes the 
-// plaintext and hashed versions of the token, associated user ID, expiry time and 
-// scope.
-type Token struct { 
-	Plaintext string
-	Hash []byte 
-	UserID int64
-	Expiry time.Time
-	Scope string
 }
 
 func generateToken(userID int64, ttl time.Duration, scope string) (*Token, error) {

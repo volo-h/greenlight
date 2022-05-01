@@ -402,3 +402,43 @@ curl -X PUT -d '{"token": "GAHSM6PPCROP4VSSEBCGEU2XEU"}' localhost:4000/v1/users
 
 #
   https://shahjerry33.medium.com/password-reset-token-leak-via-referrer-2e622500c2c1
+
+# First-Class Functions in Golang !
+  https://levelup.gitconnected.com/first-class-functions-in-golang-ef2a5001bb4f
+
+# generics
+  https://levelup.gitconnected.com/generics-example-in-go-minmax-40593f0adaa8
+
+https://go.dev/play/p/eTz1xBm4W2a
+
+
+Authentication is about confirming who a user is
+Authorization is about checking whether that user is permitted to do something
+
+five approaches:
+  HTTP Basic authentication - 
+    in header ex.: Authorization: Basic YWxpY2VAZXhhbXBsZS5jb206cGE1NXdvcmQ=
+    Request.BasicAuth() https://pkg.go.dev/net/http#Request.BasicAuth
+  Stateful token authentication - stored server-side in a database, alongside the user ID and an expiry time for the token.
+    in header ex.: Authorization: Bearer <token>
+  Stateless token authentication - stateless tokens encode the user ID and expiry time in the token itself. The token is cryptographically signed to prevent tampering and (in some cases) encrypted to prevent the contents being read.
+  API key authentication. In an emergency, you could effectively revoke all tokens by changing the secret used for signing your tokens (forcing all users to re-authenticate), or another workaround is to maintain a blocklist of revoked tokens in a database (although that defeats the ‘stateless’ aspect of having stateless tokens).
+    JWT
+    https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/
+    https://curity.io/resources/learn/jwt-best-practices/
+  OAuth 2.0 / OpenID Connect
+
+  API-key authentication - The idea behind API-key authentication is that a user has a non-expiring secret ‘key’ associated with their account. This key should be a high-entropy cryptographically-secure random string, and a fast hash of the key (SHA256 or SHA512) should be stored alongside the corresponding user ID in your database.
+  OAuth 2.0 is not an authentication protocol, and you shouldn’t really use it for authenticating users - https://oauth.net/articles/authentication/ю
+  If you want to implement authentication checks against a third-party identity provider, you should use OpenID Connect - https://openid.net/connect/
+    in header ex: Authorization: Key <key>
+    https://github.com/coreos/go-oidc
+
+    when your API has a microservice architecture with different services for performing authentication and performing other tasks, then use stateless authentication tokens.
+
+
+SELECT * FROM tokens WHERE scope = 'authentication';
+
+Authorization is a request header, not a response header - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization
+
+
