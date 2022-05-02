@@ -441,4 +441,6 @@ SELECT * FROM tokens WHERE scope = 'authentication';
 
 Authorization is a request header, not a response header - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization
 
+401 Unauthorized response should be used when you have missing or bad authentication
+403 Forbidden response should be used afterwards, when the user is authenticated but isn’t allowed to perform the requested operation.
 
