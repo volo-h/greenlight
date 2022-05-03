@@ -444,3 +444,26 @@ Authorization is a request header, not a response header - https://developer.moz
 401 Unauthorized response should be used when you have missing or bad authentication
 403 Forbidden response should be used afterwards, when the user is authenticated but isn’t allowed to perform the requested operation.
 
+
+
+The difference between simple and preflight cross-origin requests.
+
+scheme    https|https  
+host      foo.com
+port      443
+
+same origin
+
+# different path
+  http://foo.com/a & http://foo.com/b
+# different query string
+  http://foo.com/a & http://foo.com/a?b=c
+# different fragment
+  http://foo.com/a#b & http://foo.com/a#c
+
+A webpage on one origin can send data to a different origin. For example, it’s OK for a HTML form in a webpage to submit data to a different origin.
+But a webpage on one origin is not allowed to receive data from a different origin.
+
+
+
+
