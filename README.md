@@ -465,5 +465,84 @@ A webpage on one origin can send data to a different origin. For example, it’s
 But a webpage on one origin is not allowed to receive data from a different origin.
 
 
+What is the ratio of successful HTTP responses to both client and server errors?
 
+https://pkg.go.dev/expvar
+
+go mod tidy - command to prune any unused dependencies from the go.mod and go.sum files, and add any missing dependencies.
+
+go mod verify - command to check that the dependencies on your computer (located in your module cache located at $GOPATH/pkg/mod ) haven’t been changed since they were downloaded and that they match the cryptographic hashes in your go.sum file. Running this helps ensure that the dependencies being used are the exact ones that you expect.
+
+go fmt ./... command to format all .go files in the project directory, according to the Go standard. This will reformat files ‘in place’ and output the names of any changed files.
+
+go vet ./... command to check all .go files in the project directory. The go vet tool runs a variety of analyzers which carry out static analysis of your code and warn you about things which might be wrong but won’t be picked up by the compiler such as unreachable code, unnecessary assignments, and badly-formed build tags.
+
+go test -race -vet=off ./... command to run all tests in the project directory. By default, go test automatically executes a small subset of the go vet checks before running any tests, so to avoid duplication we’ll use the -vet=off flag to turn this off. The -race flag enables Go’s race detector, which can help pick up certain classes of race conditions while tests are running.
+
+https://staticcheck.io/ - is a state of the art linter for the Go programming language. Using static analysis, it finds bugs and performance issues, offers simplifications, and enforces style rules.
+  go install honnef.co/go/tools/cmd/staticcheck@latest
+
+
+1. module proxies (also known as module mirrors)
+  go env
+
+  go env | grep GOPROXY
+
+  export GOPROXY=https://goproxy.io,https://proxy.golang.org,direct
+
+  # disable module mirrors altogether
+    export GOPROXY=direct
+
+go mod vendor - Vendoring dependencies in this way basically stores a complete copy of the source code for third-party packages in a vendor folder in your project.
+
+go mod tidy - command will make sure the go.mod and go.sum files list all the necessary dependencies for our project (and no unnecessary ones).
+
+go mod verify - command will verify that the dependencies stored in your module cache (located on your machine at $GOPATH/pkg/mod ) match the cryptographic hashes in the go.sum file.
+
+go mod vendor - command will then copy the necessary source code from your module cache into a new vendor directory in your project root.
+
+tree -L 3 ./vendor/
+
+when you run a command such as 
+  go run , 
+  go test or 
+  go build , 
+
+the go tool will recognize the presence of a vendor folder and the dependency code in the vendor folder will be used — rather than the code in the module cache on your local machine.
+
+# to remove everything from your local module cache
+go clean -modcache
+
+vendor/modules.txt file is essentially a manifest of the vendored packages and their version numbers. When vendoring is being used, the go tool will check that the module version numbers in modules.txt are consistent with the version numbers in the go.mod file. If there’s any inconsistency, then the go tool will report an error.
+
+
+go mod verify - will verify that the dependencies in your module cache match the go.sum file
+go mod vendor - will copy those same dependencies from the module cache into your vendor folder.
+
+go fmt ./...            the current directory
+go vet ./...            all sub-directories
+go test ./... .         excluding the vendor directory
+
+
+go build -o=./bin/api ./cmd/api
+
+# debugger
+  https://github.com/go-delve/delve
+
+  https://www.sourceware.org/gdb/
+
+  https://github.com/golang/go/issues/26074
+
+go tool dist list
+
+you can specify the operating system and architecture that you want to create the binary for by setting GOOS and GOARCH environment variables when running go build . For example:
+$ GOOS=linux GOARCH=amd64 go build {args}
+
+# where your build cache is
+  go env GOCACHE
+
+  /Users/lviv/Library/Caches/go-build
+
+$ go build -a -o=/bin/foo ./cmd/foo        # Force all packages to be rebuilt 
+$ go clean -cache                          # Remove everything from the build cache
 

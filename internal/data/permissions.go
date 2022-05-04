@@ -1,6 +1,6 @@
 package data
 
-import ( 
+import (
 	"context"
 	"database/sql"
 	"time"
@@ -16,22 +16,22 @@ type Permissions []string
 // permission code.
 
 func (p Permissions) Include(code string) bool {
-	for i := range p { 
-		if code == p[i] { 
+	for i := range p {
+		if code == p[i] {
 			return true
 		}
 	}
 	return false
 }
 
-// Define the PermissionModel type. 
-type PermissionModel struct { 
+// Define the PermissionModel type.
+type PermissionModel struct {
 	DB *sql.DB
 }
 
-// The GetAllForUser() method returns all permission codes for a specific user in a 
-// Permissions slice. The code in this method should feel very familiar --- it uses the 
-// standard pattern that we've already seen before for retrieving multiple data rows in 
+// The GetAllForUser() method returns all permission codes for a specific user in a
+// Permissions slice. The code in this method should feel very familiar --- it uses the
+// standard pattern that we've already seen before for retrieving multiple data rows in
 // an SQL query.
 func (m PermissionModel) GetAllForUser(userID int64) (Permissions, error) {
 	query := ` SELECT permissions.code 
@@ -42,7 +42,7 @@ func (m PermissionModel) GetAllForUser(userID int64) (Permissions, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := m.DB.QueryContext(ctx, query, userID) 
+	rows, err := m.DB.QueryContext(ctx, query, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -59,18 +59,17 @@ func (m PermissionModel) GetAllForUser(userID int64) (Permissions, error) {
 		}
 
 		permissions = append(permissions, permission)
-	} 
+	}
 
-	if err = rows.Err(); err != nil { 
+	if err = rows.Err(); err != nil {
 		return nil, err
 	}
 
 	return permissions, nil
 }
 
-
-// Add the provided permission codes for a specific user. Notice that we're using a 
-// variadic parameter for the codes so that we can assign multiple permissions in a 
+// Add the provided permission codes for a specific user. Notice that we're using a
+// variadic parameter for the codes so that we can assign multiple permissions in a
 // single call.
 func (m PermissionModel) AddForUser(userID int64, codes ...string) error {
 	query := ` 

@@ -3,36 +3,36 @@ package main
 import (
 	"errors" // New import
 	"fmt"
-	"net" // New import
-	"net/http"
-	"sync" // New import
-	"strings" // New import
-	"time" // New import
-	"golang.org/x/time/rate" // New import
-	"greenlight.alexedwards.net/internal/data" // New import 
+	"golang.org/x/time/rate"                        // New import
+	"greenlight.alexedwards.net/internal/data"      // New import
 	"greenlight.alexedwards.net/internal/validator" // New import
+	"net"                                           // New import
+	"net/http"
+	"strings" // New import
+	"sync"    // New import
+	"time"    // New import
 )
 
 func (app *application) recoverPanic(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { 
-		// Create a deferred function (which will always be run in the event of a panic 
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Create a deferred function (which will always be run in the event of a panic
 		// as Go unwinds the stack).
 
-		defer func() { 
-			// Use the builtin recover function to check if there has been a panic or 
+		defer func() {
+			// Use the builtin recover function to check if there has been a panic or
 			// not.
 
 			if err := recover(); err != nil {
-				// If there was a panic, set a "Connection: close" header on the 
-				// response. This acts as a trigger to make Go's HTTP server 
-				// automatically close the current connection after a response has been 
+				// If there was a panic, set a "Connection: close" header on the
+				// response. This acts as a trigger to make Go's HTTP server
+				// automatically close the current connection after a response has been
 				// sent.
 
-				w.Header().Set("Connection", "close") 
-				// The value returned by recover() has the type interface{}, so we use 
-				// fmt.Errorf() to normalize it into an error and call our 
-				// serverErrorResponse() helper. In turn, this will log the error using 
-				// our custom Logger type at the ERROR level and send the client a 500 
+				w.Header().Set("Connection", "close")
+				// The value returned by recover() has the type interface{}, so we use
+				// fmt.Errorf() to normalize it into an error and call our
+				// serverErrorResponse() helper. In turn, this will log the error using
+				// our custom Logger type at the ERROR level and send the client a 500
 				// Internal Server Error response.
 
 				app.serverErrorResponse(w, r, fmt.Errorf("%s", err))
@@ -46,30 +46,30 @@ func (app *application) recoverPanic(next http.Handler) http.Handler {
 func (app *application) rateLimit(next http.Handler) http.Handler {
 	// Define a client struct to hold the rate limiter and last seen time for each // client.
 	type client struct {
-		limiter *rate.Limiter
+		limiter  *rate.Limiter
 		lastSeen time.Time
 	}
 
-	// Declare a mutex and a map to hold the clients' IP addresses and rate limiters. 
+	// Declare a mutex and a map to hold the clients' IP addresses and rate limiters.
 	var (
 		mu sync.Mutex
-		// Update the map so the values are pointers to a client struct. 
+		// Update the map so the values are pointers to a client struct.
 		clients = make(map[string]*client)
 	)
 
-	// Launch a background goroutine which removes old entries from the clients map once 
+	// Launch a background goroutine which removes old entries from the clients map once
 	// every minute.
 	go func() {
-		for { 
+		for {
 			time.Sleep(time.Minute)
 
-			// Lock the mutex to prevent any rate limiter checks from happening while 
+			// Lock the mutex to prevent any rate limiter checks from happening while
 			// the cleanup is taking place.
 			mu.Lock()
 
-			// Loop through all clients. If they haven't been seen within the last three 
+			// Loop through all clients. If they haven't been seen within the last three
 			// minutes, delete the corresponding entry from the map.
-			for ip, client := range clients { 
+			for ip, client := range clients {
 				if time.Since(client.lastSeen) > 3*time.Minute {
 					delete(clients, ip)
 				}
@@ -81,13 +81,12 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 		}
 	}()
 
-
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { 
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Only carry out the check if rate limiting is enabled.
-		if app.config.limiter.enabled { 
-			ip, _, err := net.SplitHostPort(r.RemoteAddr) 
+		if app.config.limiter.enabled {
+			ip, _, err := net.SplitHostPort(r.RemoteAddr)
 			if err != nil {
-				app.serverErrorResponse(w, r, err) 
+				app.serverErrorResponse(w, r, err)
 				return
 			}
 
@@ -95,7 +94,7 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 
 			if _, found := clients[ip]; !found {
 				clients[ip] = &client{
-					// Use the requests-per-second and burst values from the config 
+					// Use the requests-per-second and burst values from the config
 					// struct.
 
 					limiter: rate.NewLimiter(rate.Limit(app.config.limiter.rps), app.config.limiter.burst),
@@ -104,12 +103,12 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 
 			clients[ip].lastSeen = time.Now()
 
-			if !clients[ip].limiter.Allow() { 
+			if !clients[ip].limiter.Allow() {
 				mu.Unlock()
-				app.rateLimitExceededResponse(w, r) 
+				app.rateLimitExceededResponse(w, r)
 				return
 			}
-		
+
 			mu.Unlock()
 		}
 
@@ -118,19 +117,19 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 }
 
 func (app *application) authenticate(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { 
-		// Add the "Vary: Authorization" header to the response. This indicates to any 
-		// caches that the response may vary based on the value of the Authorization 
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Add the "Vary: Authorization" header to the response. This indicates to any
+		// caches that the response may vary based on the value of the Authorization
 		// header in the request.
 		w.Header().Add("Vary", "Authorization")
 
-		// Retrieve the value of the Authorization header from the request. This will 
-		// return the empty string "" if there is no such header found. 
+		// Retrieve the value of the Authorization header from the request. This will
+		// return the empty string "" if there is no such header found.
 		authorizationHeader := r.Header.Get("Authorization")
 
-		// If there is no Authorization header found, use the contextSetUser() helper 
-		// that we just made to add the AnonymousUser to the request context. Then we 
-		// call the next handler in the chain and return without executing any of the 
+		// If there is no Authorization header found, use the contextSetUser() helper
+		// that we just made to add the AnonymousUser to the request context. Then we
+		// call the next handler in the chain and return without executing any of the
 		// code below.
 
 		if authorizationHeader == "" {
@@ -139,25 +138,25 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		// Otherwise, we expect the value of the Authorization header to be in the format 
-		// "Bearer <token>". We try to split this into its constituent parts, and if the 
-		// header isn't in the expected format we return a 401 Unauthorized response 
-		// using the invalidAuthenticationTokenResponse() helper (which we will create 
+		// Otherwise, we expect the value of the Authorization header to be in the format
+		// "Bearer <token>". We try to split this into its constituent parts, and if the
+		// header isn't in the expected format we return a 401 Unauthorized response
+		// using the invalidAuthenticationTokenResponse() helper (which we will create
 		// in a moment).
-		headerParts := strings.Split(authorizationHeader, " ") 
+		headerParts := strings.Split(authorizationHeader, " ")
 		if len(headerParts) != 2 || headerParts[0] != "Bearer" {
 			app.invalidAuthenticationTokenResponse(w, r)
 			return
 		}
 
-		// Extract the actual authentication token from the header parts. 
+		// Extract the actual authentication token from the header parts.
 		token := headerParts[1]
 
-		// Validate the token to make sure it is in a sensible format. 
+		// Validate the token to make sure it is in a sensible format.
 		v := validator.New()
 
-		// If the token isn't valid, use the invalidAuthenticationTokenResponse() 
-		// helper to send a response, rather than the failedValidationResponse() helper 
+		// If the token isn't valid, use the invalidAuthenticationTokenResponse()
+		// helper to send a response, rather than the failedValidationResponse() helper
 		// that we'd normally use.
 
 		if data.ValidateTokenPlaintext(v, token); !v.Valid() {
@@ -165,29 +164,28 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		// Retrieve the details of the user associated with the authentication token, 
-		// again calling the invalidAuthenticationTokenResponse() helper if no 
-		// matching record was found. IMPORTANT: Notice that we are using 
+		// Retrieve the details of the user associated with the authentication token,
+		// again calling the invalidAuthenticationTokenResponse() helper if no
+		// matching record was found. IMPORTANT: Notice that we are using
 		// ScopeAuthentication as the first parameter here.
-		user, err := app.models.Users.GetForToken(data.ScopeAuthentication, token) 
+		user, err := app.models.Users.GetForToken(data.ScopeAuthentication, token)
 		if err != nil {
-			switch { 
+			switch {
 			case errors.Is(err, data.ErrRecordNotFound):
 				app.invalidAuthenticationTokenResponse(w, r)
 			default:
 				app.serverErrorResponse(w, r, err)
-			} 
+			}
 			return
 		}
 
-		// Call the contextSetUser() helper to add the user information to the request 
+		// Call the contextSetUser() helper to add the user information to the request
 		// context.
 		r = app.contextSetUser(r, user)
-		// Call the next handler in the chain. 
+		// Call the next handler in the chain.
 		next.ServeHTTP(w, r)
 	})
 }
-
 
 // Create a new requireAuthenticatedUser() middleware to check that a user is not // anonymous.
 
@@ -195,7 +193,7 @@ func (app *application) requireAuthenticatedUser(next http.HandlerFunc) http.Han
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := app.contextGetUser(r)
 
-		if user.IsAnonymous() { 
+		if user.IsAnonymous() {
 			app.authenticationRequiredResponse(w, r)
 			return
 		}
@@ -205,9 +203,9 @@ func (app *application) requireAuthenticatedUser(next http.HandlerFunc) http.Han
 }
 
 // Checks that a user is both authenticated and activated.
-func (app *application) requireActivatedUser(next http.HandlerFunc) http.HandlerFunc { 
+func (app *application) requireActivatedUser(next http.HandlerFunc) http.HandlerFunc {
 	// Rather than returning this http.HandlerFunc we assign it to the variable fn.
-	fn := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { 
+	fn := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := app.contextGetUser(r)
 
 		// Check that a user is activated.
@@ -219,7 +217,7 @@ func (app *application) requireActivatedUser(next http.HandlerFunc) http.Handler
 		next.ServeHTTP(w, r)
 	})
 
-	// Wrap fn with the requireAuthenticatedUser() middleware before returning it. 
+	// Wrap fn with the requireAuthenticatedUser() middleware before returning it.
 	return app.requireAuthenticatedUser(fn)
 }
 
@@ -237,18 +235,26 @@ func (app *application) requirePermission(code string, next http.HandlerFunc) ht
 			return
 		}
 
-		// Check if the slice includes the required permission. If it doesn't, then 
+		// Check if the slice includes the required permission. If it doesn't, then
 		// return a 403 Forbidden response.
 		if !permissions.Include(code) {
 			app.notPermittedResponse(w, r)
 			return
 		}
 
-		// Otherwise they have the required permission so we call the next handler in 
+		// Otherwise they have the required permission so we call the next handler in
 		// the chain.
 		next.ServeHTTP(w, r)
 	}
 
-	// Wrap this with the requireActivatedUser() middleware before returning it. 
+	// Wrap this with the requireActivatedUser() middleware before returning it.
 	return app.requireActivatedUser(fn)
+}
+
+func (app *application) enableCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
+		next.ServeHTTP(w, r)
+	})
 }

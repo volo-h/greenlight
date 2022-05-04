@@ -1,29 +1,29 @@
 package data
 
 import (
-  "context" // New import
-  "database/sql" // New import
-  "errors" // New import
-  "fmt" // New import
-  "time"
-  "greenlight.alexedwards.net/internal/validator" // New import
-  "github.com/lib/pq" // New import
+	"context"                                       // New import
+	"database/sql"                                  // New import
+	"errors"                                        // New import
+	"fmt"                                           // New import
+	"github.com/lib/pq"                             // New import
+	"greenlight.alexedwards.net/internal/validator" // New import
+	"time"
 )
 
 // Define a MovieModel struct type which wraps a sql.DB connection pool.
 type MovieModel struct {
-  DB *sql.DB
+	DB *sql.DB
 }
 
 type Movie struct {
-  ID int64 `json:"id"`
-  CreatedAt time.Time `json:"-"` // Use the - directive 
-  Title string `json:"title"`
-  Year int32 `json:"year,omitempty"` // Add the omitempty directive 
-  // Use the Runtime type instead of int32. Note that the omitempty directive will // still work on this: if the Runtime field has the underlying value 0, then it will // be considered empty and omitted -- and the MarshalJSON() method we just made // won't be called at all.
-  Runtime Runtime `json:"runtime,omitempty"`
-  Genres []string `json:"genres,omitempty"` // Add the omitempty directive Version int32 `json:"version"`
-  Version int32 `json:"version"`
+	ID        int64     `json:"id"`
+	CreatedAt time.Time `json:"-"` // Use the - directive
+	Title     string    `json:"title"`
+	Year      int32     `json:"year,omitempty"` // Add the omitempty directive
+	// Use the Runtime type instead of int32. Note that the omitempty directive will // still work on this: if the Runtime field has the underlying value 0, then it will // be considered empty and omitted -- and the MarshalJSON() method we just made // won't be called at all.
+	Runtime Runtime  `json:"runtime,omitempty"`
+	Genres  []string `json:"genres,omitempty"` // Add the omitempty directive Version int32 `json:"version"`
+	Version int32    `json:"version"`
 }
 
 func ValidateMovie(v *validator.Validator, movie *Movie) {
@@ -55,19 +55,19 @@ func (m MovieModel) Insert(movie *Movie) error {
 	// make it nice and clear *what values are being used where* in the query.
 	args := []interface{}{movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres)}
 
-	// Use the QueryRow() method to execute the SQL query on our connection pool, 
+	// Use the QueryRow() method to execute the SQL query on our connection pool,
 	// passing in the args slice as a variadic parameter and scanning the system
 	// generated id, created_at and version values into the movie struct.
 	return m.DB.QueryRow(query, args...).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
 }
 
-// Add a placeholder method for fetching a specific record from the movies table. 
+// Add a placeholder method for fetching a specific record from the movies table.
 func (m MovieModel) Get(id int64) (*Movie, error) {
 	// The PostgreSQL bigserial type that we're using for the movie ID starts
 	// auto-incrementing at 1 by default, so we know that no movies will have ID values
 	// less than that. To avoid making an unnecessary database call, we take a shortcut
 	// and return an ErrRecordNotFound error straight away.
-	if id < 1 { 
+	if id < 1 {
 		return nil, ErrRecordNotFound
 	}
 
@@ -77,11 +77,11 @@ func (m MovieModel) Get(id int64) (*Movie, error) {
 		FROM movies
 		WHERE id = $1`
 
-	// Declare a Movie struct to hold the data returned by the query. 
+	// Declare a Movie struct to hold the data returned by the query.
 	var movie Movie
 
-	// Use the context.WithTimeout() function to create a context.Context which carries a 
-	// 3-second timeout deadline. Note that we're using the empty context.Background() 
+	// Use the context.WithTimeout() function to create a context.Context which carries a
+	// 3-second timeout deadline. Note that we're using the empty context.Background()
 	// as the 'parent' context.
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 
@@ -120,31 +120,30 @@ func (m MovieModel) Get(id int64) (*Movie, error) {
 	return &movie, nil
 }
 
-
-// Add a placeholder method for updating a specific record in the movies table. 
+// Add a placeholder method for updating a specific record in the movies table.
 func (m MovieModel) Update(movie *Movie) error {
 	// Declare the SQL query for updating the record and returning the new version // number.
-	query := 
+	query :=
 		` UPDATE movies 
 		SET title = $1, year = $2, runtime = $3, genres = $4, version = version + 1 
 		WHERE id = $5 AND version = $6
 		RETURNING version`
 
-	// Create an args slice containing the values for the placeholder parameters. 
-	args := []interface{}{ 
-		movie.Title, 
-		movie.Year, 
-		movie.Runtime, 
+	// Create an args slice containing the values for the placeholder parameters.
+	args := []interface{}{
+		movie.Title,
+		movie.Year,
+		movie.Runtime,
 		pq.Array(movie.Genres),
 		movie.ID,
 		movie.Version, // Add the expected movie version.
 	}
 
-	// Execute the SQL query. If no matching row could be found, we know the movie 
+	// Execute the SQL query. If no matching row could be found, we know the movie
 	// version has changed (or the record has been deleted) and we return our custom // ErrEditConflict error.
-	err := m.DB.QueryRow(query, args...).Scan(&movie.Version) 
+	err := m.DB.QueryRow(query, args...).Scan(&movie.Version)
 	if err != nil {
-		switch { 
+		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return ErrEditConflict
 		default:
@@ -155,7 +154,7 @@ func (m MovieModel) Update(movie *Movie) error {
 	return nil
 
 	// Use the QueryRow() method to execute the query, passing in the args slice as a
-	// variadic parameter and scanning the new version value into the movie struct. 
+	// variadic parameter and scanning the new version value into the movie struct.
 	// return m.DB.QueryRow(query, args...).Scan(&movie.Version)
 }
 
@@ -166,18 +165,18 @@ func (m MovieModel) Delete(id int64) error {
 		return ErrRecordNotFound
 	}
 
-	// Construct the SQL query to delete the record. 
-		query := ` DELETE FROM movies
+	// Construct the SQL query to delete the record.
+	query := ` DELETE FROM movies
 			WHERE id = $1`
 
 	// Execute the SQL query using the Exec() method, passing in the id variable as
 	// the value for the placeholder parameter. The Exec() method returns a sql.Result // object.
-		result, err := m.DB.Exec(query, id) 
-		if err != nil { 
-			return err
-		}
+	result, err := m.DB.Exec(query, id)
+	if err != nil {
+		return err
+	}
 
-	// Call the RowsAffected() method on the sql.Result object to get the number of rows 
+	// Call the RowsAffected() method on the sql.Result object to get the number of rows
 	// affected by the query.
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
@@ -185,7 +184,7 @@ func (m MovieModel) Delete(id int64) error {
 	}
 
 	// If no rows were affected, we know that the movies table didn't contain a record
-	// with the provided ID at the moment we tried to delete it. In that case we 
+	// with the provided ID at the moment we tried to delete it. In that case we
 	// return an ErrRecordNotFound error.
 	if rowsAffected == 0 {
 		return ErrRecordNotFound
@@ -196,7 +195,7 @@ func (m MovieModel) Delete(id int64) error {
 
 // Create a new GetAll() method which returns a slice of movies. Although we're not // using them right now, we've set this up to accept the various filter parameters as // arguments.
 
-func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*Movie, Metadata, error) { 
+func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*Movie, Metadata, error) {
 	// Construct the SQL query to retrieve all movie records.
 	// query := `
 	// 	SELECT id, created_at, title, year, runtime, genres, version FROM movies
@@ -204,9 +203,9 @@ func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*M
 	// 	AND (genres @> $2 OR $2 = '{}') ORDER BY id`
 
 	// query := `
-	// 	SELECT id, created_at, title, year, runtime, genres, version 
-	// 	FROM movies 
-	// 	WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '') 
+	// 	SELECT id, created_at, title, year, runtime, genres, version
+	// 	FROM movies
+	// 	WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '')
 	// 	AND (genres @> $2 OR $2 = '{}')
 	// 	ORDER BY id`
 
@@ -220,20 +219,20 @@ func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*M
 		LIMIT $3 OFFSET $4`, filters.sortColumn(), filters.sortDirection())
 
 	// Create a context with a 3-second timeout.
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second) 
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 
 	defer cancel()
 
-	// Use QueryContext() to execute the query. This returns a sql.Rows resultset 
+	// Use QueryContext() to execute the query. This returns a sql.Rows resultset
 	// containing the result.
 	// rows, err := m.DB.QueryContext(ctx, query)
 	// if err != nil {
 	// 	return nil, err
 	// }
 
-	// As our SQL query now has quite a few placeholder parameters, let's collect the 
-	// values for the placeholders in a slice. Notice here how we call the limit() and 
-	// offset() methods on the Filters struct to get the appropriate values for the 
+	// As our SQL query now has quite a few placeholder parameters, let's collect the
+	// values for the placeholders in a slice. Notice here how we call the limit() and
+	// offset() methods on the Filters struct to get the appropriate values for the
 	// LIMIT and OFFSET clauses.
 	args := []interface{}{title, pq.Array(genres), filters.limit(), filters.offset()}
 
@@ -243,44 +242,44 @@ func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*M
 		return nil, Metadata{}, err
 	}
 
-	// Importantly, defer a call to rows.Close() to ensure that the resultset is closed 
+	// Importantly, defer a call to rows.Close() to ensure that the resultset is closed
 	// before GetAll() returns.
 	defer rows.Close()
 
-	// Declare a totalRecords variable. 
+	// Declare a totalRecords variable.
 	totalRecords := 0
 
-	// Initialize an empty slice to hold the movie data. 
+	// Initialize an empty slice to hold the movie data.
 	movies := []*Movie{}
 
-	// Use rows.Next to iterate through the rows in the resultset. for 
+	// Use rows.Next to iterate through the rows in the resultset. for
 	for rows.Next() {
-		// Initialize an empty Movie struct to hold the data for an individual movie. 
+		// Initialize an empty Movie struct to hold the data for an individual movie.
 		var movie Movie
-		
-		// Scan the values from the row into the Movie struct. Again, note that we're 
+
+		// Scan the values from the row into the Movie struct. Again, note that we're
 		// using the pq.Array() adapter on the genres field here.
 		err := rows.Scan(
 			&totalRecords, // Scan the count from the window function into totalRecords.
-			&movie.ID, 
-			&movie.CreatedAt, 
-			&movie.Title, 
-			&movie.Year, 
-			&movie.Runtime, 
-			pq.Array(&movie.Genres), 
+			&movie.ID,
+			&movie.CreatedAt,
+			&movie.Title,
+			&movie.Year,
+			&movie.Runtime,
+			pq.Array(&movie.Genres),
 			&movie.Version,
-		) 
-		if err != nil { 
+		)
+		if err != nil {
 			return nil, Metadata{}, err
 		}
 
-		// Add the Movie struct to the slice. 
+		// Add the Movie struct to the slice.
 		movies = append(movies, &movie)
 	}
 
-	// When the rows.Next() loop has finished, call rows.Err() to retrieve any error 
+	// When the rows.Next() loop has finished, call rows.Err() to retrieve any error
 	// that was encountered during the iteration.
-	if err = rows.Err(); err != nil { 
+	if err = rows.Err(); err != nil {
 		return nil, Metadata{}, err // Update this to return an empty Metadata struct.
 	}
 
@@ -288,6 +287,6 @@ func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*M
 	// parameters from the client.
 	metadata := calculateMetadata(totalRecords, filters.Page, filters.PageSize)
 
-	// Include the metadata struct when returning. 
+	// Include the metadata struct when returning.
 	return movies, metadata, nil
 }
