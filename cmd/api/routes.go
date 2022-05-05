@@ -31,8 +31,17 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)
 	router.HandlerFunc(http.MethodPut, "/v1/users/activated", app.activateUserHandler)
 
+	// Add the PUT /v1/users/password endpoint.
+	router.HandlerFunc(http.MethodPut, "/v1/users/password", app.updateUserPasswordHandler)
+
 	// Add the route for the POST /v1/tokens/authentication endpoint.
 	router.HandlerFunc(http.MethodPost, "/v1/tokens/authentication", app.createAuthenticationTokenHandler)
+
+	// Add the POST /v1/tokens/activation endpoint.
+	router.HandlerFunc(http.MethodPost, "/v1/tokens/activation", app.createActivationTokenHandler)
+
+	// Add the POST /v1/tokens/password-reset endpoint.
+	router.HandlerFunc(http.MethodPost, "/v1/tokens/password-reset", app.createPasswordResetTokenHandler)
 
 	// Add the enableCORS() middleware.
 	return app.recoverPanic(app.enableCORS(app.rateLimit(app.authenticate(router))))

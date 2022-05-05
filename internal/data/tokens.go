@@ -16,6 +16,7 @@ import (
 const (
 	ScopeActivation     = "activation"
 	ScopeAuthentication = "authentication" // Include a new authentication scope.
+	ScopePasswordReset 	= "password-reset"
 )
 
 // Check that the plaintext token has been provided and is exactly 52 bytes long.

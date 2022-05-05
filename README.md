@@ -546,3 +546,86 @@ $ GOOS=linux GOARCH=amd64 go build {args}
 $ go build -a -o=/bin/foo ./cmd/foo        # Force all packages to be rebuilt 
 $ go clean -cache                          # Remove everything from the build cache
 
+https://www.digitalocean.com/pricing
+https://caddyserver.com/
+https://letsencrypt.org/
+
+virtual machine known in Digital Ocean terminology as a droplet.
+https://www.digitalocean.com/products/droplets
+
+https://cloud.digitalocean.com/registrations/new
+
+As part of the registration process, you’ll be prompted confirm your email address and then add a minimum of $5 USD pre-paid credit to your account using either a credit/debit card or PayPal.
+
+
+ssh-keygen -t rsa -b 4096 -C "greenlight@greenlight.alexedwards.net" -f $HOME/.ssh/id_rsa_greenlight
+  $HOME/.ssh/id_rsa_greenlight file contains your private key. Make sure to keep this secure, because anyone who has access to it will be able to impersonate you.
+  
+  $HOME/.ssh/id_rsa_greenlight.pub file contains your public key. We’ll upload a copy of this public key to Digital Ocean.
+
+# SSH key listed in the output
+  ssh-add -l
+
+# add key to SSH agent
+  ssh-add $HOME/.ssh/id_rsa_greenlight
+
+add pub key from $HOME/.ssh/id_rsa_greenlight.pub TO 'popup window'
+
+# 
+
+# create droplet
+  https://docs.digitalocean.com/reference/api/api-reference/
+  https://www.digitalocean.com/community/tutorials/how-to-use-doctl-the-official-digitalocean-command-line-client
+
+https://docs.digitalocean.com/products/billing/bandwidth/
+
+# automated backup
+https://www.digitalocean.com/docs/images/backups/
+
+$ ssh root@45.55.49.87
+
+# add the greenlight user to the sudo group, so that it can perform actions as root if necessary.
+
+https://www.fail2ban.org/wiki/index.php/Main_Page
+https://github.com/golang-migrate/migrate
+https://caddyserver.com/docs/install#debian-ubuntu-raspbian
+
+$ mkdir -p remote/setup 
+$ touch remote/setup/01.sh
+
+# run in production
+./api -port=4000 -db-dsn=$GREENLIGHT_DB_DSN -env=production
+
+http://<your_droplet_ip>:4000/v1/healthcheck
+
+/home/greenlight/api -port=4000 -db-dsn=$GREENLIGHT_DB_DSN -env=production
+
+
+https://www.freedesktop.org/wiki/Software/systemd/
+
+https://www.freedesktop.org/software/systemd/man/systemd.unit.html
+
+https://en.wikipedia.org/wiki/Public-key_cryptography
+https://www.digitalocean.com/community/tutorials/ssh-essentials-working-with-ssh-servers-clients-and-keys
+https://www.ssh.com/academy/ssh/keygen
+
+ps -U greenlight
+
+curl 45.55.49.87:4000/v1/healthcheck
+
+# Disable port 4000
+  ~$ sudo ufw delete allow 4000/tcp
+
+sudo journalctl -u api
+
+to configure Caddy to act as a reverse proxy and forward any HTTP requests that it receives onward to our API.
+
+https://caddyserver.com/docs/caddyfile
+
+web -> 80 -> Caddy (proxy) -> internal 4000 port
+
+
+https://www.freenom.com/ru/index.html
+
+Caddy will automatically handle provisioning and renewing TLS certificates for your domain via Let’s Encrypt, as well as redirecting all HTTP requests to HTTPS.
+
